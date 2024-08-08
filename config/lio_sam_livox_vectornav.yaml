@@ -1,8 +1,10 @@
 liorf:
 
-  # Topics
-  pointCloudTopic: "points_raw"               # Point cloud data
-  imuTopic: "imu_raw"                         # IMU data
+  # # Topics
+  pointCloudTopic: "/livox/points"               # Point cloud data
+  imuTopic: "/livox/imu"                         # IMU data
+  # pointCloudTopic: "points_raw"               # Point cloud data
+  # imuTopic: "imu_raw"                         # IMU data
   odomTopic: "odometry/imu"                   # IMU pre-preintegration odometry, same frequency as IMU
   gpsTopic: "odometry/gpsz"                   # GPS odometry topic from navsat, see module_navsat.launch file
 
@@ -13,7 +15,7 @@ liorf:
   mapFrame: "map"
 
   # GPS Settings
-  useImuHeadingInitialization: true           # if using GPS data, set to "true"
+  useImuHeadingInitialization: false           # if using GPS data, set to "true"
   useGpsElevation: false                      # if GPS elevation is bad, set to "false"
   gpsCovThreshold: 2.0                        # m^2, threshold for using GPS data
   poseCovThreshold: 25.0                      # m^2, threshold for using GPS data
@@ -25,6 +27,12 @@ liorf:
   # Sensor Settings
   sensor: livox                            # lidar sensor type, 'velodyne' or 'ouster' or 'livox' or 'robosense'
   N_SCAN: 6                                  # number of lidar channel (i.e., Velodyne/Ouster: 16, 32, 64, 128, Livox Horizon: 6)
+  
+  angResX: 0.03
+  angResY: 0.28
+  angBottom: 12.5
+  useCloudRing: false
+
   Horizon_SCAN: 4000                          # lidar horizontal resolution (Velodyne:1800, Ouster:512,1024,2048, Livox Horizon: 4000)
   downsampleRate: 1                           # default: 1. Downsample your data if too many points(line). i.e., 16 = 64 / 4, 16 = 16 / 1
   point_filter_num: 3                         # default: 3. Downsample your data if too many points(point). e.g., 16: 1, 32: 5, 64: 8
@@ -33,7 +41,7 @@ liorf:
 
   # IMU Settings
   imuType: 0                                  # 0: 6-axis  1: 9-axis
-  imuRate: 500.0
+  imuRate: 200 
   imuAccNoise: 3.9939570888238808e-03
   imuGyrNoise: 1.5636343949698187e-03
   imuAccBiasN: 6.4356659353532566e-05
@@ -42,15 +50,21 @@ liorf:
   imuRPYWeight: 0.01
 
   # Extrinsics: T_lb (lidar -> imu)
+  # extrinsicTrans: [0.17027267,-0.14193641,0.19235242]
+  # extrinsicRot: [9.99541883e-01,-3.01623417e-02,1.38643603e-03,-3.01920623e-02,-9.98865355e-01,3.67526161e-02,2.75924131e-04,-3.67775231e-02,-9.99322621e-01]
+  # extrinsicRPY: [9.99541883e-01,-3.01623417e-02,1.38643603e-03,-3.01920623e-02,-9.98865355e-01,3.67526161e-02,2.75924131e-04,-3.67775231e-02,-9.99322621e-01]
   extrinsicTrans: [0.0, 0.0, 0.0]
-  extrinsicRot: [-1, 0, 0,
+  extrinsicRot: [1, 0, 0,
                   0, 1, 0,
-                  0, 0, -1]
+                  0, 0, 1]
+  extrinsicRPY: [0,  1, 0,
+                 -1, 0, 0,
+                  0, 0, 1]
 
   # This parameter is set only when the 9-axis IMU is used, but it must be a high-precision IMU. e.g. MTI-680
-  extrinsicRPY: [0, -1, 0,
-                 1, 0, 0,
-                 0, 0, 1]
+  # extrinsicRPY: [0, -1, 0,
+  #                1, 0, 0,
+  #                0, 0, 1]
 
   # voxel filter paprams
   mappingSurfLeafSize: 0.15                      # default: 0.4 - outdoor, 0.2 - indoor

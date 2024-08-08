@@ -56,7 +56,7 @@ public:
             }
         }
 
-        subLaserOdometry = nh.subscribe<nav_msgs::Odometry>("liorf/mapping/odometry", 5, &TransformFusion::lidarOdometryHandler, this, ros::TransportHints().tcpNoDelay());
+        subLaserOdometry = nh.subscribe<nav_msgs::Odometry>("liorf/mapping/odometry", 500, &TransformFusion::lidarOdometryHandler, this, ros::TransportHints().tcpNoDelay());
         subImuOdometry   = nh.subscribe<nav_msgs::Odometry>(odomTopic+"_incremental",   2000, &TransformFusion::imuOdometryHandler,   this, ros::TransportHints().tcpNoDelay());
 
         pubImuOdometry   = nh.advertise<nav_msgs::Odometry>(odomTopic, 2000);

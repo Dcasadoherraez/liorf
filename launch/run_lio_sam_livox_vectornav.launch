@@ -4,7 +4,7 @@
     <!-- <param name="/use_sim_time" value="true" /> -->
 
     <!-- Parameters -->
-    <rosparam file="$(find liorf)/config/lio_sam_livox.yaml" command="load" />
+    <rosparam file="$(find liorf)/config/lio_sam_livox_vectornav.yaml" command="load" />
 
     <!--- LOAM -->
     <include file="$(find liorf)/launch/include/module_loam.launch" />
@@ -20,6 +20,6 @@
 
     <!--- Run Rviz-->
     <include file="$(find liorf)/launch/include/module_rviz.launch" />
-    <!-- <node name="rosbag_play" pkg="rosbag" type="play" args="/home/daniel/PhD/RadarSlam/datasets/odometry_datasets/ntu4DRadLM/cp/cp_2022-02-26.bag -r 0.5" output="screen" /> -->
+    <node name="rosbag_play" pkg="rosbag" type="play" args="/home/daniel/PhD/RadarSlam/datasets/odometry_datasets/ntu4DRadLM/cp/cp_2022-02-26.bag -r 0.5" output="screen" />
 
 </launch>

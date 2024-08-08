@@ -1,7 +1,7 @@
 #pragma once
 #ifndef _UTILITY_LIDAR_ODOMETRY_H_
 #define _UTILITY_LIDAR_ODOMETRY_H_
-#define PCL_NO_PRECOMPILE 
+#define PCL_NO_PRECOMPILE
 // <!-- liorf_yjz_lucky_boy -->
 #include <ros/ros.h>
 
@@ -27,7 +27,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/filters/filter.h>
 #include <pcl/filters/voxel_grid.h>
-#include <pcl/filters/crop_box.h> 
+#include <pcl/filters/crop_box.h>
 #include <pcl_conversions/pcl_conversions.h>
 
 #include <opencv2/opencv.hpp>
@@ -37,7 +37,7 @@
 #include <tf/transform_listener.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
- 
+
 #include <vector>
 #include <cmath>
 #include <algorithm>
@@ -63,23 +63,29 @@ typedef pcl::PointXYZI PointType;
 // <!-- liorf_localization_yjz_lucky_boy -->
 std::shared_ptr<CommonLib::common_lib> common_lib_;
 
-enum class SensorType { VELODYNE, OUSTER, LIVOX, ROBOSENSE, MULRAN};
+enum class SensorType
+{
+    VELODYNE,
+    OUSTER,
+    LIVOX,
+    ROBOSENSE,
+    MULRAN
+};
 
 class ParamServer
 {
 public:
-
     ros::NodeHandle nh;
 
     std::string robot_id;
 
-    //Topics
+    // Topics
     string pointCloudTopic;
     string imuTopic;
     string odomTopic;
     string gpsTopic;
 
-    //Frames
+    // Frames
     string lidarFrame;
     string baselinkFrame;
     string odometryFrame;
@@ -122,11 +128,11 @@ public:
     Eigen::Quaterniond extQRPY;
 
     // voxel filter paprams
-    float mappingSurfLeafSize ;
+    float mappingSurfLeafSize;
     float surroundingKeyframeMapLeafSize;
-    float loopClosureICPSurfLeafSize ;
+    float loopClosureICPSurfLeafSize;
 
-    float z_tollerance; 
+    float z_tollerance;
     float rotation_tollerance;
 
     // CPU Params
@@ -134,18 +140,18 @@ public:
     double mappingProcessInterval;
 
     // Surrounding map
-    float surroundingkeyframeAddingDistThreshold; 
-    float surroundingkeyframeAddingAngleThreshold; 
+    float surroundingkeyframeAddingDistThreshold;
+    float surroundingkeyframeAddingAngleThreshold;
     float surroundingKeyframeDensity;
     float surroundingKeyframeSearchRadius;
-    
+
     // Loop closure
-    bool  loopClosureEnableFlag;
+    bool loopClosureEnableFlag;
     float loopClosureFrequency;
-    int   surroundingKeyframeSize;
+    int surroundingKeyframeSize;
     float historyKeyframeSearchRadius;
     float historyKeyframeSearchTimeDiff;
-    int   historyKeyframeSearchNum;
+    int historyKeyframeSearchNum;
     float historyKeyframeFitnessScore;
 
     // global map visualization radius
@@ -153,8 +159,16 @@ public:
     float globalMapVisualizationPoseDensity;
     float globalMapVisualizationLeafSize;
 
+    float angBottom;
+    float angResX;
+    float angResY;
+    bool useCloudRing;
+
+
     ParamServer()
     {
+
+
         nh.param<std::string>("/robot_id", robot_id, "roboat");
 
         nh.param<std::string>("liorf/pointCloudTopic", pointCloudTopic, "points_raw");
@@ -188,20 +202,29 @@ public:
         else if (sensorStr == "livox")
         {
             sensor = SensorType::LIVOX;
-        } else if  (sensorStr == "robosense") {
+        }
+        else if (sensorStr == "robosense")
+        {
             sensor = SensorType::ROBOSENSE;
         }
         else if (sensorStr == "mulran")
         {
             sensor = SensorType::MULRAN;
-        } 
-        else {
+        }
+        else
+        {
             ROS_ERROR_STREAM(
                 "Invalid sensor type (must be either 'velodyne' or 'ouster' or 'livox' or 'robosense' or 'mulran'): " << sensorStr);
             ros::shutdown();
         }
 
         nh.param<int>("liorf/N_SCAN", N_SCAN, 16);
+        nh.param<float>("liorf/angBottom", angBottom, 15.0 + 0.1);
+        nh.param<float>("liorf/angResY", angResY, 2.0);
+        nh.param<float>("liorf/angResX", angResX, 2.0);
+        nh.param<bool>("liorf/useCloudRing", useCloudRing, true);
+
+
         nh.param<int>("liorf/Horizon_SCAN", Horizon_SCAN, 1800);
         nh.param<int>("liorf/downsampleRate", downsampleRate, 1);
         nh.param<int>("liorf/point_filter_num", point_filter_num, 3);
@@ -254,7 +277,7 @@ public:
         usleep(100);
     }
 
-    sensor_msgs::Imu imuConverter(const sensor_msgs::Imu& imu_in)
+    sensor_msgs::Imu imuConverter(const sensor_msgs::Imu &imu_in)
     {
         sensor_msgs::Imu imu_out = imu_in;
         // rotate acceleration
@@ -270,7 +293,8 @@ public:
         imu_out.angular_velocity.y = gyr.y();
         imu_out.angular_velocity.z = gyr.z();
 
-        if (imuType) {
+        if (imuType)
+        {
             // rotate roll pitch yaw
             Eigen::Quaterniond q_from(imu_in.orientation.w, imu_in.orientation.x, imu_in.orientation.y, imu_in.orientation.z);
             Eigen::Quaterniond q_final = q_from * extQRPY;
@@ -279,7 +303,7 @@ public:
             imu_out.orientation.z = q_final.z();
             imu_out.orientation.w = q_final.w();
 
-            if (sqrt(q_final.x()*q_final.x() + q_final.y()*q_final.y() + q_final.z()*q_final.z() + q_final.w()*q_final.w()) < 0.1)
+            if (sqrt(q_final.x() * q_final.x() + q_final.y() * q_final.y() + q_final.z() * q_final.z() + q_final.w() * q_final.w()) < 0.1)
             {
                 ROS_ERROR("Invalid quaternion, please use a 9-axis IMU!");
                 ros::shutdown();
@@ -290,8 +314,8 @@ public:
     }
 };
 
-template<typename T>
-sensor_msgs::PointCloud2 publishCloud(const ros::Publisher& thisPub, const T& thisCloud, ros::Time thisStamp, std::string thisFrame)
+template <typename T>
+sensor_msgs::PointCloud2 publishCloud(const ros::Publisher &thisPub, const T &thisCloud, ros::Time thisStamp, std::string thisFrame)
 {
     sensor_msgs::PointCloud2 tempCloud;
     pcl::toROSMsg(*thisCloud, tempCloud);
@@ -302,14 +326,13 @@ sensor_msgs::PointCloud2 publishCloud(const ros::Publisher& thisPub, const T& th
     return tempCloud;
 }
 
-template<typename T>
+template <typename T>
 double ROS_TIME(T msg)
 {
     return msg->header.stamp.toSec();
 }
 
-
-template<typename T>
+template <typename T>
 void imuAngular2rosAngular(sensor_msgs::Imu *thisImuMsg, T *angular_x, T *angular_y, T *angular_z)
 {
     *angular_x = thisImuMsg->angular_velocity.x;
@@ -317,8 +340,7 @@ void imuAngular2rosAngular(sensor_msgs::Imu *thisImuMsg, T *angular_x, T *angula
     *angular_z = thisImuMsg->angular_velocity.z;
 }
 
-
-template<typename T>
+template <typename T>
 void imuAccel2rosAccel(sensor_msgs::Imu *thisImuMsg, T *acc_x, T *acc_y, T *acc_z)
 {
     *acc_x = thisImuMsg->linear_acceleration.x;
@@ -326,8 +348,7 @@ void imuAccel2rosAccel(sensor_msgs::Imu *thisImuMsg, T *acc_x, T *acc_y, T *acc_
     *acc_z = thisImuMsg->linear_acceleration.z;
 }
 
-
-template<typename T>
+template <typename T>
 void imuRPY2rosRPY(sensor_msgs::Imu *thisImuMsg, T *rosRoll, T *rosPitch, T *rosYaw)
 {
     double imuRoll, imuPitch, imuYaw;
